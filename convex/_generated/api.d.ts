@@ -18,6 +18,7 @@ import type * as init from "../init.js";
 import type * as memory from "../memory.js";
 import type * as messages from "../messages.js";
 import type * as objective from "../objective.js";
+import type * as profiles from "../profiles.js";
 import type * as reset from "../reset.js";
 import type * as timeline from "../timeline.js";
 import type * as todos from "../todos.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   memory: typeof memory;
   messages: typeof messages;
   objective: typeof objective;
+  profiles: typeof profiles;
   reset: typeof reset;
   timeline: typeof timeline;
   todos: typeof todos;

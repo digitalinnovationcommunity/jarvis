@@ -23,12 +23,31 @@ export async function POST(request: NextRequest) {
   if (!jwt) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
+  let profileSection = "";
   try {
     const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
     convex.setAuth(jwt);
     const user = await convex.query(api.auth.me, {});
     if (!user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    // Personalize the session with the operator's profile.
+    const profile = await convex.query(api.profiles.get, {});
+    if (profile) {
+      const lines = [
+        profile.displayName && `- Name: ${profile.displayName} (address them by name)`,
+        profile.role && `- Role: ${profile.role}`,
+        profile.company && `- Company: ${profile.company}`,
+        profile.location && `- Location: ${profile.location}`,
+        profile.timezone && `- Timezone: ${profile.timezone} (use for all times and scheduling)`,
+        profile.communicationStyle &&
+          `- Preferred communication style: ${profile.communicationStyle}`,
+        profile.signOff && `- Email sign-off to use when sending email: "${profile.signOff}"`,
+        profile.notes && `- Additional context: ${profile.notes}`,
+      ].filter(Boolean);
+      if (lines.length > 0) {
+        profileSection = `\n\nOperator profile (treat as ground truth about the user):\n${lines.join("\n")}`;
+      }
     }
   } catch {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
@@ -41,6 +60,7 @@ export async function POST(request: NextRequest) {
       model: "gpt-realtime",
       instructions:
         JARVIS_INSTRUCTIONS +
+        profileSection +
         `\n\nCurrent date and time: ${now.toString()}. Use this to resolve relative dates.`,
       tools: JARVIS_TOOLS,
       audio: {

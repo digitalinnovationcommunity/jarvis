@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
@@ -142,6 +143,7 @@ function Header({
 }) {
   const { signOut } = useAuthActions();
   const user = useQuery(api.auth.me);
+  const profile = useQuery(api.profiles.get);
   return (
     <header className="flex items-center justify-between px-6 py-4 xl:px-7">
       <div className="flex items-baseline gap-3">
@@ -170,9 +172,27 @@ function Header({
         </div>
         <Clock />
         <div className="flex items-center gap-2.5 border-l border-white/10 pl-4">
-          <span className="mono max-w-[180px] truncate text-[11px] text-white/40">
-            {user?.email ?? "operator"}
+          <span className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/[0.05]">
+              {profile?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-[10px] font-semibold text-cyan-200/70">
+                  {(profile?.displayName ?? user?.email ?? "O")[0]?.toUpperCase()}
+                </span>
+              )}
+            </span>
+            <span className="mono max-w-[160px] truncate text-[11px] text-white/40">
+              {profile?.displayName ?? user?.email ?? "operator"}
+            </span>
           </span>
+          <Link
+            href="/profile"
+            className="mono rounded border border-cyan-300/20 bg-cyan-400/[0.06] px-2 py-1 text-[9.5px] tracking-[0.2em] text-cyan-200/70 uppercase transition hover:border-cyan-300/45 hover:bg-cyan-400/15 hover:text-cyan-100"
+          >
+            Edit profile
+          </Link>
           <button
             onClick={() => void signOut()}
             className="mono rounded border border-white/10 px-2 py-1 text-[9.5px] tracking-[0.2em] text-white/35 uppercase transition hover:border-red-300/40 hover:text-red-300/80"

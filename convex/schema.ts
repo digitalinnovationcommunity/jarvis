@@ -5,6 +5,21 @@ import { v } from "convex/values";
 export default defineSchema({
   ...authTables,
 
+  // Operator profile — details Jarvis should know about each user.
+  profiles: defineTable({
+    userId: v.id("users"),
+    displayName: v.optional(v.string()),
+    role: v.optional(v.string()),
+    company: v.optional(v.string()),
+    location: v.optional(v.string()),
+    timezone: v.optional(v.string()),
+    communicationStyle: v.optional(v.string()), // concise | balanced | detailed
+    signOff: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    avatarStorageId: v.optional(v.id("_storage")),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   // Live conversation transcript. Streaming messages are patched in place.
   messages: defineTable({
     userId: v.id("users"),
