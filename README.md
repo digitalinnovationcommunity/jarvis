@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jarvis Control Center
 
-## Getting Started
+A voice-first AI operating system. Talk naturally with Jarvis — it connects to your real services (Gmail, Google Calendar, Notion), performs actions, remembers context, and continuously updates a live dashboard while it works. Full-duplex conversation with natural interruption, synchronized across every open window.
 
-First, run the development server:
+## Architecture
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js (App Router)** — UI plus a route handler (`src/app/api/realtime/token`) that mints ephemeral OpenAI Realtime tokens so the real API key never reaches the browser.
+- **OpenAI Realtime API** (`gpt-realtime`, WebRTC) — speech-to-speech with semantic VAD, barge-in interruption, and function calling over the data channel.
+- **Convex** — the shared brain. Transcript, memory, timeline, dashboard cards, connections, and the current objective are all reactive queries, so every open tab stays in sync automatically.
+- **Composio** — real OAuth integrations. Jarvis creates managed auth configs and hosted sign-in links on demand, then executes Gmail / Calendar / Notion tools server-side in Convex actions.
+- **Convex Auth** — email + password authentication. Every table (todos, memory, transcript, timeline, connections, dashboard) is scoped per user, and Composio connections are keyed by the Convex user id, so each operator has a fully isolated Jarvis. The Realtime token route rejects unauthenticated requests.
+
+```
+Browser ──WebRTC audio + data channel──▶ OpenAI Realtime
+   │                                          │
+   │  function calls                          │
+   ▼                                          │
+Convex action (tool dispatcher) ──▶ Composio ─┘
+   │
+   └─▶ writes memory / timeline / dashboard / objective
+         └─▶ reactive queries update every open tab
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install dependencies**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. **Environment** — copy `.env.example` to `.env.local` and fill in:
+   - `OPENAI_API_KEY` — OpenAI key with Realtime access
+   - Convex vars are written automatically by `npx convex dev`
 
-To learn more about Next.js, take a look at the following resources:
+   Set the required env vars on the Convex deployment:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   npx convex env set COMPOSIO_API_KEY <your-key>
+   npx convex env set SITE_URL http://localhost:3000
+   # JWT keys for Convex Auth (generate once):
+   #   JWT_PRIVATE_KEY — RS256 private key (PKCS8, newlines as spaces)
+   #   JWKS — matching public JWKS JSON
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Run** (two processes):
 
-## Deploy on Vercel
+   ```bash
+   npx convex dev     # Convex backend (local anonymous deployment works)
+   npm run dev        # Next.js on http://localhost:3000
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Open http://localhost:3000, create an operator account (email + password), click **Activate Jarvis**, grant microphone access, and speak.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Things to try
+
+- "What can you connect to?"
+- "Connect my Gmail." — complete the sign-in popup, Jarvis confirms when it's linked
+- "Check my unread emails."
+- "What meetings do I have today?"
+- "Create a meeting tomorrow at 2 PM called design review."
+- "Remember that my favorite editor is Cursor."
+- "What do you know about me?"
+- "Track a task: ship the landing page."
+- "Jarvis, prepare me for today." — the flagship daily briefing
+- Interrupt Jarvis mid-sentence — it stops and pivots immediately
+- Open a second tab — conversation, memory, timeline, and dashboard mirror in real time
