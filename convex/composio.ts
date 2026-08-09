@@ -9,6 +9,8 @@ import { requireUser } from "./auth";
 export const SERVICES: Record<string, { name: string; description: string }> = {
   gmail: { name: "Gmail", description: "Read and search email" },
   googlecalendar: { name: "Google Calendar", description: "View and create events" },
+  microsoft_teams: { name: "Microsoft Teams", description: "Send messages and manage channels" },
+  whatsapp: { name: "WhatsApp", description: "Message customers via WhatsApp Business" },
   notion: { name: "Notion", description: "Search notes and documents" },
 };
 

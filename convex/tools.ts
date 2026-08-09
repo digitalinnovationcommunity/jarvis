@@ -464,6 +464,8 @@ function resolveServiceSlug(input: string): string | null {
   const s = input.toLowerCase();
   if (s.includes("gmail") || s.includes("mail") || s.includes("email")) return "gmail";
   if (s.includes("calendar")) return "googlecalendar";
+  if (s.includes("teams") || s.includes("microsoft teams")) return "microsoft_teams";
+  if (s.includes("whatsapp") || s.includes("whats app")) return "whatsapp";
   if (s.includes("notion") || s.includes("note")) return "notion";
   if (SERVICES[s]) return s;
   return null;
